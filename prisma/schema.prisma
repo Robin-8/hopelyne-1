@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatar       String?
+  roles        String   @default("MEMBER") // Comma-separated: SUPER_ADMIN,BLOG_MODERATOR,FORUM_MODERATOR,EVENTS_MODERATOR,MEMBER
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  blogPosts   BlogPost[]
+  forumTopics ForumTopic[]
+  forumReplies ForumReply[]
+}
+
+model TeamMember {
+  id           String  @id @default(cuid())
+  name         String
+  role         String
+  bio          String?
+  photoUrl     String?
+  linkedIn     String?
+  twitter      String?
+  instagram    String?
+  displayOrder Int     @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  coverImage  String?
+  tags        String?  // Comma-separated tags
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  status      String   @default("DRAFT") // DRAFT, PUBLISHED
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ForumTopic {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  category  String   // Peer Pressure, Parental Pressure, Self-Care, Academic Stress, General
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  status    String   @default("PENDING") // PENDING, APPROVED, COMPLETED, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  replies ForumReply[]
+}
+
+model ForumReply {
+  id        String   @id @default(cuid())
+  content   String
+  topicId   String
+  topic     ForumTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  likes     ReplyLike[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReplyLike {
+  id        String   @id @default(cuid())
+  replyId   String
+  reply     ForumReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([replyId, userId])
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  coverImage  String?
+  date        DateTime
+  time        String?
+  venue       String?
+  meetingLink String?
+  type        String   @default("UPCOMING") // UPCOMING, PAST
+  gallery     String?  // JSON array of image URLs
+  recap       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attendances  EventAttendance[]
+  comments     EventComment[]
+}
+
+model EventAttendance {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  attending Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+}
+
+model EventComment {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  userName  String
+  content   String
+  rating    Int?     // 1-5 star rating
+  createdAt DateTime @default(now())
+}
+
+model UsefulResource {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  url          String
+  type         String   // BOOK, ARTICLE, YOUTUBE
+  thumbnailUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+

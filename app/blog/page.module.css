@@ -1,0 +1,15 @@
+.main { padding: 8rem 2rem 4rem; max-width: 1200px; margin: 0 auto; }
+.title { font-size: 3rem; font-family: 'Outfit', sans-serif; color: var(--text-primary); text-align: center; margin-bottom: 3rem; }
+.filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
+.filterBtn { padding: 0.5rem 1.5rem; border-radius: 20px; border: 1px solid var(--border-color); background: var(--surface); cursor: pointer; transition: all 0.2s; color: var(--text-primary); font-family: inherit; }
+.filterBtn:hover, .filterBtn.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+.card { background: var(--surface); border-radius: 16px; overflow: hidden; text-decoration: none; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: transform 0.3s; border: 1px solid var(--border-color); }
+.card:hover { transform: translateY(-5px); }
+.image { height: 200px; background: linear-gradient(45deg, var(--color-secondary), var(--color-accent)); }
+.content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+.cardTags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.cardTag { background: var(--background); color: var(--text-secondary); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 12px; text-transform: capitalize; border: 1px solid var(--border-color); }
+.cardTitle { font-size: 1.25rem; font-weight: bold; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.4; }
+.excerpt { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; flex: 1; line-height: 1.5; }
+.meta { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); padding-top: 1rem; border-top: 1px solid var(--border-color); }

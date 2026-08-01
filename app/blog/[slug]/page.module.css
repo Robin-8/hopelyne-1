@@ -1,0 +1,17 @@
+.main { padding: 4rem 0 0; min-height: 100vh; background: var(--background); }
+.heroBanner { width: 100%; height: 450px; background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary)); display: flex; align-items: flex-end; padding: 4rem 2rem; position: relative; margin-bottom: -4rem; }
+.heroBanner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--background), transparent); }
+.heroContent { max-width: 800px; margin: 0 auto; width: 100%; position: relative; z-index: 10; }
+.title { font-size: 3.5rem; font-family: 'Outfit', sans-serif; color: white; margin-bottom: 1rem; line-height: 1.2; text-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.container { max-width: 800px; margin: 0 auto; padding: 3rem; background: var(--surface); border-radius: 24px; position: relative; z-index: 20; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+.meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
+.authorInfo { display: flex; gap: 1rem; color: var(--text-secondary); font-size: 0.95rem; align-items: center; }
+.authorName { color: var(--text-primary); font-weight: 600; font-family: 'Outfit', sans-serif; }
+.readingTime { background: var(--color-secondary); color: var(--color-primary-dark); padding: 0.2rem 0.8rem; border-radius: 20px; font-weight: 500; font-size: 0.85rem; }
+.tagsRow { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+.badge { background: rgba(211, 47, 47, 0.1); color: var(--color-primary); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; text-transform: capitalize; border: 1px solid rgba(211, 47, 47, 0.2); }
+.content { font-size: 1.15rem; line-height: 1.8; color: var(--text-primary); font-family: 'Inter', sans-serif; }
+.content p { margin-bottom: 1.5rem; }
+.footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); }
+.back { display: inline-flex; align-items: center; color: var(--color-primary); text-decoration: none; font-weight: 500; transition: transform 0.2s; font-family: 'Outfit', sans-serif; }
+.back:hover { transform: translateX(-5px); }

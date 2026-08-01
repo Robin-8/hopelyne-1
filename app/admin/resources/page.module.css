@@ -1,0 +1,9 @@
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.title { font-size: 2rem; color: var(--text-primary); }
+.table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 8px; overflow: hidden; }
+.table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.table th { background: rgba(255,255,255,0.02); color: var(--text-secondary); font-weight: 600; }
+.table tr:hover { background: rgba(255,255,255,0.02); }
+.actions { display: flex; gap: 0.5rem; }
+.actionBtn { background: none; border: none; cursor: pointer; color: var(--text-secondary); }
+.actionBtn:hover { color: var(--primary); }

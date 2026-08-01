@@ -1,0 +1,11 @@
+.dashboard { display: flex; flex-direction: column; gap: 2rem; }
+.welcome { font-size: 2rem; color: var(--text-primary); margin-bottom: 1rem; }
+.statsGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+.statCard { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; border-bottom: 4px solid var(--primary); }
+.statValue { font-size: 2.5rem; font-weight: bold; color: var(--primary); }
+.statLabel { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; }
+.feedGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+.feedCard { background: var(--surface); border-radius: 12px; padding: 1.5rem; }
+.feedTitle { font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
+.feedItem { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.actions { display: flex; gap: 1rem; margin-top: 1rem; }
