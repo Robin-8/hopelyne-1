@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone utility script — not part of the Next.js app
+    "generate_pages.js",
   ]),
 ]);
 

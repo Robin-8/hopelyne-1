@@ -1,13 +1,12 @@
-'use client';
-export const dynamic = 'force-dynamic';
-import { useEffect, useState } from 'react';
+// Server Component — fetches data at request time, no client-side useEffect needed
+import { getTeamMembers } from '@/models/teamModel';
 import styles from './page.module.css';
 
-export default function Team() {
-  const [team, setTeam] = useState([]);
-  useEffect(() => {
-    fetch('/api/team').then(r => r.json()).then(d => setTeam(Array.isArray(d) ? d : []));
-  }, []);
+export const dynamic = 'force-dynamic';
+
+export default async function Team() {
+  // Direct model access from the server — no internal HTTP round-trip
+  const team = await getTeamMembers();
 
   return (
     <main className={styles.main}>
@@ -20,11 +19,11 @@ export default function Team() {
             <div className={styles.role}>{member.role}</div>
             <p className={styles.bio}>{member.bio}</p>
             <div className={styles.social}>
-              <a href="#" className={styles.socialLink}>LinkedIn</a>
-              <a href="#" className={styles.socialLink}>Twitter</a>
+              {member.linkedIn && <a href={member.linkedIn} className={styles.socialLink} target="_blank" rel="noopener noreferrer">LinkedIn</a>}
+              {member.twitter && <a href={member.twitter} className={styles.socialLink} target="_blank" rel="noopener noreferrer">Twitter</a>}
             </div>
           </div>
-        )) : <p style={{textAlign: 'center', width: '100%'}}>Loading team members...</p>}
+        )) : <p style={{textAlign: 'center', width: '100%'}}>No team members found.</p>}
       </div>
     </main>
   );

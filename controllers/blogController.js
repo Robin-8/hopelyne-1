@@ -2,19 +2,22 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as blogModel from '@/models/blogModel';
+import { validate, createBlogSchema, updateBlogSchema } from '@/lib/validation';
 
 export async function getBlogPosts(request) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit'), 10) : undefined;
     const tag = searchParams.get('tag');
+    const limitParam = searchParams.get('limit');
+    const cursor = searchParams.get('cursor') || undefined;
+    const limit = limitParam ? Math.min(parseInt(limitParam, 10), 100) : 20;
 
     const where = {};
     if (status) where.status = status;
     if (tag) where.tags = { contains: tag };
 
-    const posts = await blogModel.getBlogPosts({ where, limit });
+    const posts = await blogModel.getBlogPosts({ where, limit, cursor });
     return NextResponse.json(posts);
   } catch (error) {
     console.error('Blog GET error:', error);
@@ -33,19 +36,23 @@ export async function createBlogPost(request) {
     }
 
     const body = await request.json();
-    const { title, content, excerpt, coverImage, tags, status } = body;
+    const { data, error } = validate(createBlogSchema, body);
+    if (error) return error;
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.random().toString(36).slice(2, 8);
+    const slug =
+      data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') +
+      '-' +
+      Math.random().toString(36).slice(2, 8);
 
     const post = await blogModel.createBlogPost({
-      title,
-      content,
-      excerpt,
-      coverImage,
-      tags,
-      status: status || 'DRAFT',
+      title: data.title,
+      content: data.content,
+      excerpt: data.excerpt,
+      coverImage: data.coverImage || null,
+      tags: data.tags,
+      status: data.status || 'DRAFT',
       slug,
-      authorId: session.user.id
+      authorId: session.user.id,
     });
 
     return NextResponse.json(post, { status: 201 });
@@ -80,11 +87,13 @@ export async function updateBlogPost(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
+    const { data, error } = validate(updateBlogSchema, body);
+    if (error) return error;
 
     const existing = await blogModel.getBlogPostById(id);
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const updateData = { ...body };
+    const updateData = { ...data };
     if (updateData.status === 'PUBLISHED' && !existing.publishedAt) {
       updateData.publishedAt = new Date();
     }

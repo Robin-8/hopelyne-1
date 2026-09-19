@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
 import { hasAnyRole, ROLES } from '@/lib/constants';
@@ -33,6 +34,7 @@ export default function NavBar() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
   }, [pathname]);
 
@@ -44,7 +46,7 @@ export default function NavBar() {
     <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ''}`}>
       <div className={styles.container}>
         <Link href="/" className={styles.logo}>
-          <img src="/logo.png" alt="HopeLyne" className={styles.logoImg} />
+          <Image src="/logo.png" alt="HopeLyne" width={32} height={32} className={styles.logoImg} priority />
           <span className={styles.logoText}>hopelyne</span>
         </Link>
 

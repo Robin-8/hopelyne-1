@@ -33,6 +33,7 @@ export default function TeamAdmin() {
         <div className={styles.grid}>
           {members.map(member => (
             <div key={member.id} className={styles.card}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={member.photoUrl || '/avatar.png'} alt={member.name} className={styles.photo} />
               <h3 className={styles.name}>{member.name}</h3>
               <div className={styles.role}>{member.role}</div>

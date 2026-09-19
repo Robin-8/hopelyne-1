@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -12,8 +12,10 @@ export default function ForumThread() {
   const { data: session } = useSession();
   const [topic, setTopic] = useState(null);
   const [replyContent, setReplyContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const fetchTopic = async () => {
+  // Declared before useEffect to satisfy react-hooks/exhaustive-deps
+  const fetchTopic = useCallback(async () => {
     try {
       const r = await fetch(`/api/forum/${id}`);
       const d = await r.json();
@@ -21,43 +23,68 @@ export default function ForumThread() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    if (id) {
-      fetchTopic();
-    }
-  }, [id]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (id) fetchTopic();
+  }, [id, fetchTopic]);
 
   const handleReply = async (e) => {
     e.preventDefault();
-    if (!replyContent.trim()) return;
+    if (!replyContent.trim() || submitting) return;
+    setSubmitting(true);
     try {
       const res = await fetch(`/api/forum/${id}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: replyContent })
+        body: JSON.stringify({ content: replyContent }),
       });
       if (res.ok) {
+        const newReply = await res.json();
+        // Update local state — append the new reply instead of re-fetching everything
+        setTopic(prev => ({
+          ...prev,
+          replies: [
+            ...(prev.replies || []),
+            {
+              ...newReply,
+              author: { id: session.user.id, name: session.user.name, avatar: session.user.avatar },
+              likes: [],
+              _count: { likes: 0 },
+            },
+          ],
+        }));
         setReplyContent('');
-        fetchTopic();
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const toggleLike = async (replyId) => {
     if (!session) {
-      alert("You must be logged in to like a reply.");
+      alert('You must be logged in to like a reply.');
       return;
     }
     try {
-      const res = await fetch(`/api/forum/${id}/replies/${replyId}/like`, {
-        method: 'POST',
-      });
+      const res = await fetch(`/api/forum/${id}/replies/${replyId}/like`, { method: 'POST' });
       if (res.ok) {
-        fetchTopic();
+        const { liked, likeCount } = await res.json();
+        // Update only the specific reply's like state — no full refetch needed
+        setTopic(prev => ({
+          ...prev,
+          replies: prev.replies.map(r => {
+            if (r.id !== replyId) return r;
+            const userId = session.user.id;
+            const newLikes = liked
+              ? [...(r.likes || []), { userId, replyId }]
+              : (r.likes || []).filter(l => l.userId !== userId);
+            return { ...r, likes: newLikes, _count: { likes: likeCount } };
+          }),
+        }));
       }
     } catch (err) {
       console.error(err);
@@ -125,7 +152,9 @@ export default function ForumThread() {
               required 
               rows={4}
             />
-            <button type="submit" className={styles.btnPrimary}>Post Reply</button>
+            <button type="submit" className={styles.btnPrimary} disabled={submitting}>
+              {submitting ? 'Posting...' : 'Post Reply'}
+            </button>
           </form>
         ) : (
           <div className={styles.loginPrompt}>

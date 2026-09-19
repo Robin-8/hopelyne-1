@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import bcryptjs from 'bcryptjs';
+import { hash } from 'bcryptjs';
 import * as userModel from '@/models/userModel';
+import { validate, createUserSchema, updateUserSchema } from '@/lib/validation';
 
 export async function getUsers() {
   try {
@@ -33,19 +34,23 @@ export async function createUser(request) {
     }
 
     const body = await request.json();
-    const { email, password, name, roles } = body;
+    const { data, error } = validate(createUserSchema, body);
+    if (error) return error;
 
-    const passwordHash = bcryptjs.hashSync(password, 12);
+    const passwordHash = await hash(data.password, 12);
     const user = await userModel.createUser({
-      email,
+      email: data.email,
       passwordHash,
-      name,
-      roles: roles || ['MEMBER']
+      name: data.name,
+      roles: data.roles || 'MEMBER',
     });
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error('Users POST error:', error);
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: 'Email already exists' }, { status: 409 });
+    }
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
   }
 }
@@ -83,13 +88,14 @@ export async function updateUser(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const { name, roles, password } = body;
+    const { data, error } = validate(updateUserSchema, body);
+    if (error) return error;
 
     const updateData = {};
-    if (name) updateData.name = name;
-    if (roles) updateData.roles = roles;
-    if (password) {
-      updateData.passwordHash = bcryptjs.hashSync(password, 12);
+    if (data.name) updateData.name = data.name;
+    if (data.roles) updateData.roles = data.roles;
+    if (data.password) {
+      updateData.passwordHash = await hash(data.password, 12);
     }
 
     const user = await userModel.updateUser(id, updateData);

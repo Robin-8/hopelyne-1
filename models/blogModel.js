@@ -1,19 +1,26 @@
 import prisma from '@/lib/prisma';
 
-export async function getBlogPosts({ where = {}, limit } = {}) {
+const AUTHOR_SELECT = {
+  select: { id: true, name: true, avatar: true },
+};
+
+export async function getBlogPosts({ where = {}, limit, cursor } = {}) {
+  const take = limit ? Math.min(limit, 100) : 20;
   return await prisma.blogPost.findMany({
     where,
-    include: { author: true },
+    include: { author: AUTHOR_SELECT },
     orderBy: { createdAt: 'desc' },
-    take: limit,
+    take,
+    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
   });
 }
 
 export async function getBlogPostByIdOrSlug(identifier) {
-  const isCuid = /^c[a-z0-9]{24}$/i.test(identifier) || identifier.length === 25;
+  // MongoDB ObjectIds are 24-char hex strings; fallback to slug lookup
+  const isObjectId = /^[a-f0-9]{24}$/i.test(identifier);
   return await prisma.blogPost.findFirst({
-    where: isCuid ? { id: identifier } : { slug: identifier },
-    include: { author: true }
+    where: isObjectId ? { id: identifier } : { slug: identifier },
+    include: { author: AUTHOR_SELECT },
   });
 }
 

@@ -1,6 +1,6 @@
 'use client';
 export const dynamic = 'force-dynamic';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -22,11 +22,8 @@ export default function EventDetail() {
   const [commentContent, setCommentContent] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  useEffect(() => {
-    fetchEvent();
-  }, [id]);
-
-  const fetchEvent = () => {
+  // Declared before useEffect to satisfy react-hooks linting rules
+  const fetchEvent = useCallback(() => {
     fetch(`/api/events/${id}`)
       .then(r => r.json())
       .then(d => {
@@ -41,7 +38,12 @@ export default function EventDetail() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  useEffect(() => {
+    fetchEvent();
+  }, [fetchEvent]);
 
   const handleToggleAttendance = async () => {
     if (!session) return alert("Please log in to RSVP.");
@@ -59,7 +61,7 @@ export default function EventDetail() {
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
-    if (!session) return alert("Please log in to leave a review.");
+    if (!session) return alert('Please log in to leave a review.');
     if (!commentContent.trim()) return;
     
     setSubmittingReview(true);
@@ -70,13 +72,18 @@ export default function EventDetail() {
         body: JSON.stringify({
           content: commentContent,
           rating,
-          userName: session.user.name
-        })
+          userName: session.user.name,
+        }),
       });
       if (res.ok) {
+        const newComment = await res.json();
+        // Append new comment to local state — no full event refetch needed
+        setEvent(prev => ({
+          ...prev,
+          comments: [newComment, ...(prev.comments || [])],
+        }));
         setCommentContent('');
         setRating(5);
-        fetchEvent(); // Refresh to get the new comment
       }
     } catch (e) {
       console.error(e);
@@ -149,6 +156,7 @@ export default function EventDetail() {
                   <div className={styles.galleryGrid}>
                     {gallery.map((img, idx) => (
                       <div key={idx} className={styles.galleryItem}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={img} alt={`Gallery image ${idx+1}`} />
                       </div>
                     ))}

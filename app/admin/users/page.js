@@ -15,6 +15,7 @@ export default function UsersAdmin() {
         setLoading(false);
       }).catch(() => setLoading(false));
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
     }
   }, [session]);

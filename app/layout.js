@@ -3,6 +3,22 @@ import AuthProvider from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
+import { Inter, Outfit } from 'next/font/google';
+
+// Self-hosted via next/font — eliminates render-blocking external font request
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-outfit',
+  display: 'swap',
+});
 
 export const metadata = {
   title: 'hopelyne — Student Wellness & Awareness Community',
@@ -18,7 +34,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className={`${inter.variable} ${outfit.variable}`}>
         <AuthProvider>
           <ThemeProvider>
             <NavBar />

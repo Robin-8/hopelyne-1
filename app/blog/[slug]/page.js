@@ -1,21 +1,17 @@
-'use client';
-export const dynamic = 'force-dynamic';
-import { useEffect, useState } from 'react';
+// Server Component — fully read-only blog detail page
+import { getBlogPostByIdOrSlug } from '@/models/blogModel';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import styles from './page.module.css';
 
-export default function BlogDetail() {
-  const params = useParams();
-  const [blog, setBlog] = useState(null);
-  
-  useEffect(() => {
-    if (params?.slug) {
-      fetch(`/api/blog/${params.slug}`).then(r => r.json()).then(d => setBlog(d));
-    }
-  }, [params?.slug]);
+export const dynamic = 'force-dynamic';
 
-  if (!blog) return <main className={styles.main}><p style={{textAlign:'center', marginTop:'4rem'}}>Loading...</p></main>;
+export default async function BlogDetail({ params }) {
+  const { slug } = await params;
+  // Direct model access — no internal HTTP round-trip
+  const blog = await getBlogPostByIdOrSlug(slug);
+
+  if (!blog) notFound();
 
   const readingTime = Math.ceil((blog.content || '').split(' ').length / 200) + ' min read';
 

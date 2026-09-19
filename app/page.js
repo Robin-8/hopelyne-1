@@ -35,7 +35,7 @@ export default function Home() {
     <main className={styles.main}>
       <section className={styles.hero}>
         <h1 className={styles.title}>Empowering Students. Building Resilience. Creating Hope.</h1>
-        <p className={styles.subtitle}>A student-led awareness and wellness community dedicated to helping you navigate peer pressure, parental expectations, and life's challenges.</p>
+        <p className={styles.subtitle}>A student-led awareness and wellness community dedicated to helping you navigate peer pressure, parental expectations, and life&apos;s challenges.</p>
         <div className={styles.ctaGroup}>
           <Link href="/contact" className={styles.btnPrimary}>Join the Community</Link>
           <Link href="/resources" className={styles.btnSecondary}>Explore Resources</Link>

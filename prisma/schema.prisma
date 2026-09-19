@@ -50,6 +50,13 @@ model BlogPost {
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  // Indexes: status is filtered on every public blog request
+  // authorId is used in join resolution
+  // status+publishedAt covers the sorted public feed
+  @@index([status])
+  @@index([authorId])
+  @@index([status, publishedAt])
 }
 
 model ForumTopic {
@@ -64,6 +71,13 @@ model ForumTopic {
   updatedAt DateTime @updatedAt
 
   replies ForumReply[]
+
+  // status is filtered on every public forum and admin request
+  // category is used for tab/category filtering
+  // compound status+category covers the most common combined filter
+  @@index([status])
+  @@index([category])
+  @@index([status, category])
 }
 
 model ForumReply {
@@ -76,6 +90,9 @@ model ForumReply {
   likes     ReplyLike[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  // topicId is used on every reply-list lookup for a topic page
+  @@index([topicId])
 }
 
 model ReplyLike {
@@ -105,6 +122,11 @@ model Event {
 
   attendances EventAttendance[]
   comments    EventComment[]
+
+  // type is filtered on every event list request
+  // type+date covers the sorted event feed per type
+  @@index([type])
+  @@index([type, date])
 }
 
 model EventAttendance {

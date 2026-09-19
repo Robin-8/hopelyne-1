@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as resourceModel from '@/models/resourceModel';
+import { validate, createResourceSchema, updateResourceSchema } from '@/lib/validation';
 
 export async function getResources(request) {
   try {
@@ -24,14 +25,20 @@ export async function createResource(request) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const roles = session.user.roles || [];
-    const isModerator = roles.includes('SUPER_ADMIN') || roles.includes('BLOG_MODERATOR') || roles.includes('FORUM_MODERATOR') || roles.includes('EVENTS_MODERATOR');
+    const isModerator =
+      roles.includes('SUPER_ADMIN') ||
+      roles.includes('BLOG_MODERATOR') ||
+      roles.includes('FORUM_MODERATOR') ||
+      roles.includes('EVENTS_MODERATOR');
     if (!isModerator) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
-    const resource = await resourceModel.createResource(body);
+    const { data, error } = validate(createResourceSchema, body);
+    if (error) return error;
 
+    const resource = await resourceModel.createResource(data);
     return NextResponse.json(resource, { status: 201 });
   } catch (error) {
     console.error('Resources POST error:', error);
@@ -58,15 +65,21 @@ export async function updateResource(request, { params }) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const roles = session.user.roles || [];
-    const isModerator = roles.includes('SUPER_ADMIN') || roles.includes('BLOG_MODERATOR') || roles.includes('FORUM_MODERATOR') || roles.includes('EVENTS_MODERATOR');
+    const isModerator =
+      roles.includes('SUPER_ADMIN') ||
+      roles.includes('BLOG_MODERATOR') ||
+      roles.includes('FORUM_MODERATOR') ||
+      roles.includes('EVENTS_MODERATOR');
     if (!isModerator) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { id } = await params;
     const body = await request.json();
+    const { data, error } = validate(updateResourceSchema, body);
+    if (error) return error;
 
-    const resource = await resourceModel.updateResource(id, body);
+    const resource = await resourceModel.updateResource(id, data);
     return NextResponse.json(resource);
   } catch (error) {
     console.error('Resource PUT error:', error);
@@ -80,7 +93,11 @@ export async function deleteResource(request, { params }) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const roles = session.user.roles || [];
-    const isModerator = roles.includes('SUPER_ADMIN') || roles.includes('BLOG_MODERATOR') || roles.includes('FORUM_MODERATOR') || roles.includes('EVENTS_MODERATOR');
+    const isModerator =
+      roles.includes('SUPER_ADMIN') ||
+      roles.includes('BLOG_MODERATOR') ||
+      roles.includes('FORUM_MODERATOR') ||
+      roles.includes('EVENTS_MODERATOR');
     if (!isModerator) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

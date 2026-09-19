@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+/* Google Fonts removed — fonts are now self-hosted via next/font/google in layout.js */
+/* Inter and Outfit are injected as --font-inter and --font-outfit CSS variables on <body> */
+
 
 /* ===== CSS CUSTOM PROPERTIES (DESIGN TOKENS) ===== */
 :root {
@@ -56,8 +58,9 @@
   --shadow-card-hover: 0 12px 40px rgba(211, 47, 47, 0.12);
 
   /* -- Typography -- */
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  /* CSS variables injected by next/font/google in layout.js — self-hosted, no external round-trip */
+  --font-heading: var(--font-outfit, 'Outfit'), sans-serif;
+  --font-body: var(--font-inter, 'Inter'), sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;

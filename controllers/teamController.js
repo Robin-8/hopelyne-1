@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as teamModel from '@/models/teamModel';
+import { validate, createTeamMemberSchema, updateTeamMemberSchema } from '@/lib/validation';
 
 export async function getTeamMembers() {
   try {
@@ -24,17 +25,18 @@ export async function createTeamMember(request) {
     }
 
     const body = await request.json();
-    const member = await teamModel.createTeamMember({
-      name: body.name,
-      role: body.role,
-      bio: body.bio || null,
-      photoUrl: body.photoUrl || null,
-      linkedIn: body.linkedIn || body.linkedinUrl || null,
-      twitter: body.twitter || body.twitterUrl || null,
-      instagram: body.instagram || body.instagramUrl || null,
+    // Normalize field aliases before validation
+    const normalized = {
+      ...body,
+      linkedIn: body.linkedIn ?? body.linkedinUrl,
+      twitter: body.twitter ?? body.twitterUrl,
+      instagram: body.instagram ?? body.instagramUrl,
       displayOrder: body.displayOrder ?? body.order ?? 0,
-    });
+    };
+    const { data, error } = validate(createTeamMemberSchema, normalized);
+    if (error) return error;
 
+    const member = await teamModel.createTeamMember(data);
     return NextResponse.json(member, { status: 201 });
   } catch (error) {
     console.error('Team POST error:', error);
@@ -67,18 +69,17 @@ export async function updateTeamMember(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
+    const normalized = {
+      ...body,
+      linkedIn: body.linkedIn ?? body.linkedinUrl,
+      twitter: body.twitter ?? body.twitterUrl,
+      instagram: body.instagram ?? body.instagramUrl,
+      displayOrder: body.displayOrder ?? body.order,
+    };
+    const { data, error } = validate(updateTeamMemberSchema, normalized);
+    if (error) return error;
 
-    const updateData = {};
-    if (body.name !== undefined) updateData.name = body.name;
-    if (body.role !== undefined) updateData.role = body.role;
-    if (body.bio !== undefined) updateData.bio = body.bio;
-    if (body.photoUrl !== undefined) updateData.photoUrl = body.photoUrl;
-    if (body.linkedIn !== undefined || body.linkedinUrl !== undefined) updateData.linkedIn = body.linkedIn || body.linkedinUrl;
-    if (body.twitter !== undefined || body.twitterUrl !== undefined) updateData.twitter = body.twitter || body.twitterUrl;
-    if (body.instagram !== undefined || body.instagramUrl !== undefined) updateData.instagram = body.instagram || body.instagramUrl;
-    if (body.displayOrder !== undefined || body.order !== undefined) updateData.displayOrder = body.displayOrder ?? body.order;
-
-    const member = await teamModel.updateTeamMember(id, updateData);
+    const member = await teamModel.updateTeamMember(id, data);
     return NextResponse.json(member);
   } catch (error) {
     console.error('Team Member PUT error:', error);

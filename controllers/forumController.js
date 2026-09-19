@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as forumModel from '@/models/forumModel';
+import {
+  validate,
+  createTopicSchema,
+  updateTopicSchema,
+  createReplySchema,
+} from '@/lib/validation';
 
 export async function getTopics(request) {
   try {
@@ -9,13 +15,16 @@ export async function getTopics(request) {
     const showAll = searchParams.get('all');
     const status = searchParams.get('status');
     const category = searchParams.get('category');
+    const limitParam = searchParams.get('limit');
+    const cursor = searchParams.get('cursor') || undefined;
+    const limit = limitParam ? Math.min(parseInt(limitParam, 10), 100) : 50;
 
     const where = {};
     if (!showAll && status) where.status = status;
     else if (!showAll && !status) where.status = 'APPROVED';
     if (category) where.category = category;
 
-    const topics = await forumModel.getForumTopics(where);
+    const topics = await forumModel.getForumTopics(where, { limit, cursor });
     return NextResponse.json(topics);
   } catch (error) {
     console.error('Forum GET error:', error);
@@ -29,14 +38,15 @@ export async function createTopic(request) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { title, content, category } = body;
+    const { data, error } = validate(createTopicSchema, body);
+    if (error) return error;
 
     const topic = await forumModel.createForumTopic({
-      title,
-      content,
-      category,
+      title: data.title,
+      content: data.content,
+      category: data.category,
       status: 'PENDING',
-      authorId: session.user.id
+      authorId: session.user.id,
     });
 
     return NextResponse.json(topic, { status: 201 });
@@ -70,9 +80,11 @@ export async function updateTopic(request, { params }) {
     }
 
     const { id } = await params;
-    const { status } = await request.json();
+    const body = await request.json();
+    const { data, error } = validate(updateTopicSchema, body);
+    if (error) return error;
 
-    const topic = await forumModel.updateForumTopic(id, { status });
+    const topic = await forumModel.updateForumTopic(id, { status: data.status });
     return NextResponse.json(topic);
   } catch (error) {
     console.error('Forum PUT error:', error);
@@ -118,12 +130,14 @@ export async function createTopicReply(request, { params }) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id: topicId } = await params;
-    const { content } = await request.json();
+    const body = await request.json();
+    const { data, error } = validate(createReplySchema, body);
+    if (error) return error;
 
     const reply = await forumModel.createForumReply({
-      content,
+      content: data.content,
       topicId,
-      authorId: session.user.id
+      authorId: session.user.id,
     });
 
     return NextResponse.json(reply, { status: 201 });

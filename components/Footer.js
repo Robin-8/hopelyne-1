@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -11,7 +12,7 @@ export default function Footer() {
         <div className={styles.grid}>
           <div className={styles.brand}>
             <div className={styles.logo}>
-              <img src="/logo.png" alt="HopeLyne" className={styles.logoImg} />
+              <Image src="/logo.png" alt="HopeLyne" width={28} height={28} className={styles.logoImg} />
               <span className={styles.logoText}>hopelyne</span>
             </div>
             <p className={styles.tagline}>

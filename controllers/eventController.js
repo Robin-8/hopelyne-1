@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as eventModel from '@/models/eventModel';
+import prisma from '@/lib/prisma';
+import {
+  validate,
+  createEventSchema,
+  updateEventSchema,
+  createEventCommentSchema,
+} from '@/lib/validation';
 
 export async function getEvents(request) {
   try {
@@ -37,8 +44,10 @@ export async function createEvent(request) {
     }
 
     const body = await request.json();
-    const event = await eventModel.createEvent(body);
+    const { data, error } = validate(createEventSchema, body);
+    if (error) return error;
 
+    const event = await eventModel.createEvent(data);
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error('Events POST error:', error);
@@ -71,8 +80,10 @@ export async function updateEvent(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
+    const { data, error } = validate(updateEventSchema, body);
+    if (error) return error;
 
-    const event = await eventModel.updateEvent(id, body);
+    const event = await eventModel.updateEvent(id, data);
     return NextResponse.json(event);
   } catch (error) {
     console.error('Event PUT error:', error);
@@ -121,18 +132,17 @@ export async function createEventComment(request, { params }) {
 
     const { id: eventId } = await params;
     const userId = session.user.id;
-    const { content, rating, userName } = await request.json();
 
-    if (!content) {
-      return NextResponse.json({ error: 'Content is required' }, { status: 400 });
-    }
+    const body = await request.json();
+    const { data, error } = validate(createEventCommentSchema, body);
+    if (error) return error;
 
     const comment = await eventModel.createEventComment({
       eventId,
       userId,
-      userName: userName || session.user.name || 'Anonymous',
-      content,
-      rating: rating ? parseInt(rating) : null
+      userName: data.userName || session.user.name || 'Anonymous',
+      content: data.content,
+      rating: data.rating ?? null,
     });
 
     return NextResponse.json(comment, { status: 201 });
@@ -152,8 +162,12 @@ export async function toggleEventAttendance(request, { params }) {
     const { id: eventId } = await params;
     const userId = session.user.id;
 
-    const event = await eventModel.getEventById(eventId);
-    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    // Minimal existence check — only fetch id to avoid loading attendances/comments
+    const exists = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { id: true },
+    });
+    if (!exists) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
 
     const result = await eventModel.toggleEventAttendance(eventId, userId);
     return NextResponse.json(result);
