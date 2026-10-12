@@ -1,0 +1,215 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import styles from '../../events/editor.module.css';
+
+const SYSTEM_ROLES = [
+  'SUPER_ADMIN',
+  'BLOG_MODERATOR',
+  'FORUM_MODERATOR',
+  'EVENTS_MODERATOR',
+  'MEMBER',
+];
+
+export default function EditTeamMember() {
+  const router = useRouter();
+  const { id } = useParams();
+  const [formData, setFormData] = useState({
+    name: '',
+    role: '',
+    bio: '',
+    photoUrl: '',
+    linkedinUrl: '',
+    twitterUrl: '',
+    instagramUrl: '',
+    order: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('');
+  const [customRole, setCustomRole] = useState('');
+
+  useEffect(() => {
+    fetch(`/api/team/${id}`)
+      .then(res => res.json())
+      .then(member => {
+        if (member && !member.error) {
+          const currentRole = member.role || '';
+          setFormData({
+            name: member.name || '',
+            role: currentRole,
+            bio: member.bio || '',
+            photoUrl: member.photoUrl || '',
+            linkedinUrl: member.linkedIn || member.linkedinUrl || '',
+            twitterUrl: member.twitter || member.twitterUrl || '',
+            instagramUrl: member.instagram || member.instagramUrl || '',
+            order: member.displayOrder ?? member.order ?? 0,
+          });
+
+          if (SYSTEM_ROLES.includes(currentRole)) {
+            setSelectedRole(currentRole);
+          } else if (currentRole) {
+            setSelectedRole('__CUSTOM__');
+            setCustomRole(currentRole);
+          }
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  const handleRoleSelectChange = (e) => {
+    const val = e.target.value;
+    setSelectedRole(val);
+    if (val === '__CUSTOM__') {
+      setFormData(prev => ({ ...prev, role: customRole }));
+    } else {
+      setFormData(prev => ({ ...prev, role: val }));
+    }
+  };
+
+  const handleCustomRoleChange = (e) => {
+    const val = e.target.value;
+    setCustomRole(val);
+    setFormData(prev => ({ ...prev, role: val }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const finalRole = selectedRole === '__CUSTOM__' ? customRole.trim() : formData.role.trim();
+    if (!finalRole) {
+      alert('Please select or enter a role.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/team/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          role: finalRole,
+        }),
+      });
+      if (res.ok) router.push('/admin/team');
+      else alert('Failed to update member');
+    } catch (e) {
+      alert('Error updating member');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return <div style={{ padding: '2rem' }}>Loading member data...</div>;
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Edit Team Member</h1>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Name</label>
+          <input
+            className={styles.input}
+            required
+            value={formData.name}
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Role</label>
+          <select
+            className={styles.select}
+            value={selectedRole}
+            onChange={handleRoleSelectChange}
+            required
+          >
+            <option value="" disabled>-- Select a System Role --</option>
+            {SYSTEM_ROLES.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+            <option value="__CUSTOM__">➕ Custom Role (type your own)...</option>
+          </select>
+
+          {selectedRole === '__CUSTOM__' && (
+            <input
+              type="text"
+              className={styles.input}
+              style={{ marginTop: '0.5rem' }}
+              placeholder="Enter custom role title..."
+              value={customRole}
+              onChange={handleCustomRoleChange}
+              required
+              autoFocus
+            />
+          )}
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Bio</label>
+          <textarea
+            className={styles.textarea}
+            value={formData.bio}
+            onChange={e => setFormData({ ...formData, bio: e.target.value })}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Photo URL</label>
+          <input
+            className={styles.input}
+            value={formData.photoUrl}
+            onChange={e => setFormData({ ...formData, photoUrl: e.target.value })}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>LinkedIn URL</label>
+          <input
+            className={styles.input}
+            value={formData.linkedinUrl}
+            onChange={e => setFormData({ ...formData, linkedinUrl: e.target.value })}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Twitter URL</label>
+          <input
+            className={styles.input}
+            value={formData.twitterUrl}
+            onChange={e => setFormData({ ...formData, twitterUrl: e.target.value })}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Instagram URL</label>
+          <input
+            className={styles.input}
+            value={formData.instagramUrl}
+            onChange={e => setFormData({ ...formData, instagramUrl: e.target.value })}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Display Order</label>
+          <input
+            type="number"
+            className={styles.input}
+            value={formData.order}
+            onChange={e => setFormData({ ...formData, order: parseInt(e.target.value, 10) || 0 })}
+          />
+        </div>
+
+        <div className={styles.actions}>
+          <button type="submit" disabled={submitting} className="btn btn-primary">
+            {submitting ? 'Saving...' : 'Update Member'}
+          </button>
+          <button type="button" onClick={() => router.back()} className="btn btn-secondary">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

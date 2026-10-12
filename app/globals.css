@@ -39,9 +39,19 @@
   --color-text-muted: #9A9AB0;
   --color-text-inverse: #FFFFFF;
 
-  --color-border: #E0E0E8;
+  --color-border: #CBD5E1;
   --color-border-light: #F0F0F5;
   --color-divider: #E8E8F0;
+
+  /* Compatibility & Semantic Aliases */
+  --border: #CBD5E1;
+  --border-color: #CBD5E1;
+  --surface: #FFFFFF;
+  --background: #FAFAFA;
+  --bg-color: #FAFAFA;
+  --text-primary: #1A1A2E;
+  --text-secondary: #5A5A7A;
+  --primary: #D32F2F;
 
   /* -- Glass -- */
   --glass-bg: rgba(255, 255, 255, 0.7);
@@ -142,9 +152,19 @@
   --color-text-muted: #6A6A82;
   --color-text-inverse: #1A1A2E;
 
-  --color-border: #2A2A44;
+  --color-border: #3E4259;
   --color-border-light: #1E1E34;
   --color-divider: #2A2A44;
+
+  /* Compatibility & Semantic Aliases */
+  --border: #3E4259;
+  --border-color: #3E4259;
+  --surface: #1A1A2E;
+  --background: #0E0E1A;
+  --bg-color: #0E0E1A;
+  --text-primary: #F5F5F5;
+  --text-secondary: #A0A0B8;
+  --primary: #EF5350;
 
   --glass-bg: rgba(26, 26, 46, 0.75);
   --glass-border: rgba(255, 255, 255, 0.06);
@@ -222,6 +242,31 @@ button {
 input, textarea, select {
   font-family: var(--font-body);
   font-size: var(--font-size-base);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+textarea,
+select {
+  border: 1.5px solid var(--border-color, #CBD5E1);
+  background-color: var(--surface, #FFFFFF);
+  color: var(--text-primary, #1A1A2E);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.75rem 1rem;
+  transition: border-color var(--transition-fast, 150ms ease), box-shadow var(--transition-fast, 150ms ease);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):hover,
+textarea:hover,
+select:hover {
+  border-color: #94A3B8;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-primary, #D32F2F);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-alpha, rgba(211, 47, 47, 0.15));
 }
 
 /* ===== UTILITY CLASSES ===== */

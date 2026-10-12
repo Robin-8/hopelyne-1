@@ -41,9 +41,9 @@
 .ratingSelector { margin-bottom: 1rem; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
 .ratingSelector span:first-child { font-size: 1rem; color: var(--text-primary); font-weight: 500; margin-right: 0.5rem; }
 .starSelect { color: var(--color-accent); cursor: pointer; transition: transform 0.1s; }
-.starSelect:hover { transform: scale(1.2); }
-.textarea { width: 100%; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface); color: var(--text-primary); font-family: inherit; margin-bottom: 1rem; resize: vertical; }
-.textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(211,47,47,0.1); }
+.textarea { width: 100%; padding: 1rem; border: 1.5px solid var(--border-color, #CBD5E1); border-radius: 8px; background: var(--surface); color: var(--text-primary); font-family: inherit; margin-bottom: 1rem; resize: vertical; box-sizing: border-box; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.textarea:hover { border-color: #94A3B8; }
+.textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-alpha, rgba(211,47,47,0.15)); }
 .submitBtn { background: var(--color-primary); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
 .submitBtn:hover:not(:disabled) { background: var(--color-primary-dark); }
 .submitBtn:disabled { opacity: 0.7; cursor: not-allowed; }

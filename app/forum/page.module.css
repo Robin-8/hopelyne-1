@@ -17,7 +17,25 @@
 .badgeStatus { background: rgba(211, 47, 47, 0.1); color: var(--color-primary); }
 .form { background: var(--surface); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem; }
 .form h2 { margin: 0; font-family: 'Outfit', sans-serif; }
-.input, .textarea { width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary); font-family: inherit; }
+.input, .textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-color, #CBD5E1);
+  background: var(--surface, #FFFFFF);
+  color: var(--text-primary, #1A1A2E);
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input:hover, .textarea:hover {
+  border-color: #94A3B8;
+}
+.input:focus, .textarea:focus {
+  border-color: var(--color-primary, #D32F2F);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-alpha, rgba(211, 47, 47, 0.15));
+}
 .textarea { resize: vertical; }
 .message { padding: 1rem; background: rgba(211, 47, 47, 0.1); color: var(--color-primary); border-radius: 8px; margin-bottom: 2rem; text-align: center; font-weight: 500; }
 .empty { text-align: center; padding: 3rem; color: var(--text-secondary); }

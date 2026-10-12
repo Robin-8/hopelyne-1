@@ -41,15 +41,15 @@ export default function NewUser() {
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Name</label>
-          <input className={styles.input} required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+          <input className={styles.input} placeholder="Enter full name" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
         </div>
         <div className={styles.formGroup}>
           <label className={styles.label}>Email</label>
-          <input type="email" className={styles.input} required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+          <input type="email" className={styles.input} placeholder="user@example.com" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
         </div>
         <div className={styles.formGroup}>
           <label className={styles.label}>Password</label>
-          <input type="password" className={styles.input} required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+          <input type="password" className={styles.input} placeholder="Enter password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
         </div>
         <div className={styles.formGroup}>
           <label className={styles.label}>Roles</label>

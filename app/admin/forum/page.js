@@ -83,7 +83,7 @@ export default function ForumAdmin() {
             {filteredTopics.map(topic => (
               <tr key={topic.id}>
                 <td>{topic.title}</td>
-                <td>{topic.category?.name || 'General'}</td>
+                <td>{typeof topic.category === 'object' ? (topic.category?.name || 'General') : (topic.category || 'General')}</td>
                 <td>{topic.author?.name || 'Unknown'}</td>
                 <td>{new Date(topic.createdAt).toLocaleDateString()}</td>
                 <td>{topic._count?.replies || 0}</td>

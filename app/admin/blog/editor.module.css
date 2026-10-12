@@ -1,7 +1,26 @@
 .form { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; }
 .formGroup { display: flex; flex-direction: column; gap: 0.5rem; }
-.label { font-weight: 600; color: var(--text-primary); }
-.input, .textarea, .select { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); }
+.label { font-weight: 600; color: var(--text-primary, #1A1A2E); font-size: 0.95rem; }
+.input, .textarea, .select {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border, #CBD5E1);
+  background: var(--surface, #FFFFFF);
+  color: var(--text-primary, #1A1A2E);
+  font-family: inherit;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input:hover, .textarea:hover, .select:hover {
+  border-color: #94A3B8;
+}
+.input:focus, .textarea:focus, .select:focus {
+  border-color: var(--color-primary, #D32F2F);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-alpha, rgba(211, 47, 47, 0.15));
+}
 .textarea { min-height: 150px; resize: vertical; }
 .textareaLarge { min-height: 300px; }
 .actions { display: flex; gap: 1rem; margin-top: 1rem; }

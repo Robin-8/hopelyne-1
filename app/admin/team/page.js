@@ -38,7 +38,7 @@ export default function TeamAdmin() {
               <h3 className={styles.name}>{member.name}</h3>
               <div className={styles.role}>{member.role}</div>
               <div className={styles.actions}>
-                <button className={styles.btnEdit} onClick={() => alert('Edit Member Form - To Be Implemented')}>Edit</button>
+                <button className={styles.btnEdit} onClick={() => window.location.href = `/admin/team/${member.id}`}>Edit</button>
                 <button className={styles.btnDelete} onClick={() => handleDelete(member.id)}>Delete</button>
               </div>
             </div>
