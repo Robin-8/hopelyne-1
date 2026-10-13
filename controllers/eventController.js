@@ -33,15 +33,26 @@ export async function getEvents(request) {
   }
 }
 
+function extractRoles(userRoles) {
+  if (Array.isArray(userRoles)) return userRoles;
+  if (typeof userRoles === 'string') return userRoles.split(',').map(r => r.trim()).filter(Boolean);
+  return [];
+}
+
+function checkEventModeratorPermission(session) {
+  if (!session) return { error: 'Unauthorized', status: 401 };
+  const roles = extractRoles(session.user?.roles);
+  if (!roles.includes('SUPER_ADMIN') && !roles.includes('EVENTS_MODERATOR')) {
+    return { error: 'Forbidden', status: 403 };
+  }
+  return null;
+}
+
 export async function createEvent(request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN') && !roles.includes('EVENTS_MODERATOR')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkEventModeratorPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const body = await request.json();
     const { data, error } = validate(createEventSchema, body);
@@ -51,7 +62,7 @@ export async function createEvent(request) {
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error('Events POST error:', error);
-    return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create event', details: [error.message] }, { status: 500 });
   }
 }
 
@@ -71,12 +82,8 @@ export async function getEventById(request, { params }) {
 export async function updateEvent(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN') && !roles.includes('EVENTS_MODERATOR')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkEventModeratorPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const { id } = await params;
     const body = await request.json();
@@ -87,19 +94,15 @@ export async function updateEvent(request, { params }) {
     return NextResponse.json(event);
   } catch (error) {
     console.error('Event PUT error:', error);
-    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update event', details: [error.message] }, { status: 500 });
   }
 }
 
 export async function deleteEvent(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN') && !roles.includes('EVENTS_MODERATOR')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkEventModeratorPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const { id } = await params;
     await eventModel.deleteEvent(id);
@@ -107,7 +110,7 @@ export async function deleteEvent(request, { params }) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Event DELETE error:', error);
-    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete event', details: [error.message] }, { status: 500 });
   }
 }
 

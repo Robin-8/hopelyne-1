@@ -7,20 +7,41 @@ export default function NewEvent() {
   const router = useRouter();
   const [formData, setFormData] = useState({ title: '', description: '', date: '', time: '', venue: '', meetingLink: '', type: 'UPCOMING', recap: '' });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
+      const payload = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        date: formData.date.trim(),
+        time: formData.time.trim() || undefined,
+        venue: formData.venue.trim() || undefined,
+        meetingLink: formData.meetingLink.trim() || undefined,
+        type: formData.type,
+        recap: formData.type === 'PAST' ? (formData.recap.trim() || undefined) : undefined,
+      };
+
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
-      if (res.ok) router.push('/admin/events');
-      else alert('Failed to create event');
-    } catch (e) {
-      alert('Error creating event');
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        router.push('/admin/events');
+      } else {
+        const msg = data.details?.join(', ') || data.error || 'Failed to create event';
+        setError(msg);
+        alert(msg);
+      }
+    } catch (err) {
+      const msg = err.message || 'Error creating event';
+      setError(msg);
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -29,6 +50,19 @@ export default function NewEvent() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Create New Event</h1>
+      {error && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#FEE2E2',
+          border: '1px solid #EF4444',
+          color: '#B91C1C',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          fontWeight: 500
+        }}>
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Title</label>

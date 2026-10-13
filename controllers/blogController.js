@@ -25,15 +25,26 @@ export async function getBlogPosts(request) {
   }
 }
 
+function extractRoles(userRoles) {
+  if (Array.isArray(userRoles)) return userRoles;
+  if (typeof userRoles === 'string') return userRoles.split(',').map(r => r.trim()).filter(Boolean);
+  return [];
+}
+
+function checkBlogModeratorPermission(session) {
+  if (!session) return { error: 'Unauthorized', status: 401 };
+  const roles = extractRoles(session.user?.roles);
+  if (!roles.includes('SUPER_ADMIN') && !roles.includes('BLOG_MODERATOR')) {
+    return { error: 'Forbidden', status: 403 };
+  }
+  return null;
+}
+
 export async function createBlogPost(request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN') && !roles.includes('BLOG_MODERATOR')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkBlogModeratorPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const body = await request.json();
     const { data, error } = validate(createBlogSchema, body);
@@ -58,7 +69,7 @@ export async function createBlogPost(request) {
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
     console.error('Blog POST error:', error);
-    return NextResponse.json({ error: 'Failed to create blog post' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create blog post', details: [error.message] }, { status: 500 });
   }
 }
 
@@ -78,12 +89,8 @@ export async function getBlogPostByIdOrSlug(request, { params }) {
 export async function updateBlogPost(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN') && !roles.includes('BLOG_MODERATOR')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkBlogModeratorPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const { id } = await params;
     const body = await request.json();
@@ -102,19 +109,15 @@ export async function updateBlogPost(request, { params }) {
     return NextResponse.json(post);
   } catch (error) {
     console.error('Blog PUT error:', error);
-    return NextResponse.json({ error: 'Failed to update blog post' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update blog post', details: [error.message] }, { status: 500 });
   }
 }
 
 export async function deleteBlogPost(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN') && !roles.includes('BLOG_MODERATOR')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkBlogModeratorPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const { id } = await params;
     await blogModel.deleteBlogPost(id);
@@ -122,6 +125,6 @@ export async function deleteBlogPost(request, { params }) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Blog DELETE error:', error);
-    return NextResponse.json({ error: 'Failed to delete blog post' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete blog post', details: [error.message] }, { status: 500 });
   }
 }

@@ -7,23 +7,37 @@ export default function NewBlogPost() {
   const router = useRouter();
   const [formData, setFormData] = useState({ title: '', content: '', excerpt: '', tags: '', published: false });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       const res = await fetch('/api/blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
+          title: formData.title.trim(),
+          content: formData.content.trim(),
+          excerpt: formData.excerpt.trim() || undefined,
+          tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean).join(',') : undefined,
+          status: formData.published ? 'PUBLISHED' : 'DRAFT',
         })
       });
-      if (res.ok) router.push('/admin/blog');
-      else alert('Failed to create post');
-    } catch (e) {
-      alert('Error creating post');
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        router.push('/admin/blog');
+      } else {
+        const msg = data.details?.join(', ') || data.error || 'Failed to create post';
+        setError(msg);
+        alert(msg);
+      }
+    } catch (err) {
+      const msg = err.message || 'Error creating post';
+      setError(msg);
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -32,6 +46,19 @@ export default function NewBlogPost() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Create New Blog Post</h1>
+      {error && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#FEE2E2',
+          border: '1px solid #EF4444',
+          color: '#B91C1C',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          fontWeight: 500
+        }}>
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Title</label>

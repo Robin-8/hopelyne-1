@@ -26,6 +26,7 @@ export default function NewTeamMember() {
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
   const [customRole, setCustomRole] = useState('');
+  const [error, setError] = useState('');
 
   const handleRoleSelectChange = (e) => {
     const val = e.target.value;
@@ -52,19 +53,36 @@ export default function NewTeamMember() {
     }
 
     setLoading(true);
+    setError('');
     try {
+      const payload = {
+        ...formData,
+        name: formData.name.trim(),
+        role: finalRole,
+        bio: formData.bio?.trim() || undefined,
+        photoUrl: formData.photoUrl?.trim() || undefined,
+        linkedinUrl: formData.linkedinUrl?.trim() || undefined,
+        twitterUrl: formData.twitterUrl?.trim() || undefined,
+        instagramUrl: formData.instagramUrl?.trim() || undefined,
+      };
+
       const res = await fetch('/api/team', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          role: finalRole,
-        }),
+        body: JSON.stringify(payload),
       });
-      if (res.ok) router.push('/admin/team');
-      else alert('Failed to add member');
-    } catch (e) {
-      alert('Error adding member');
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        router.push('/admin/team');
+      } else {
+        const msg = data.details?.join(', ') || data.error || 'Failed to add member';
+        setError(msg);
+        alert(msg);
+      }
+    } catch (err) {
+      const msg = err.message || 'Error adding member';
+      setError(msg);
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -73,6 +91,19 @@ export default function NewTeamMember() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Add Team Member</h1>
+      {error && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#FEE2E2',
+          border: '1px solid #EF4444',
+          color: '#B91C1C',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          fontWeight: 500
+        }}>
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Name</label>

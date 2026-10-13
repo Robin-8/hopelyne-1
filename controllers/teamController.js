@@ -14,15 +14,26 @@ export async function getTeamMembers() {
   }
 }
 
+function extractRoles(userRoles) {
+  if (Array.isArray(userRoles)) return userRoles;
+  if (typeof userRoles === 'string') return userRoles.split(',').map(r => r.trim()).filter(Boolean);
+  return [];
+}
+
+function checkSuperAdminPermission(session) {
+  if (!session) return { error: 'Unauthorized', status: 401 };
+  const roles = extractRoles(session.user?.roles);
+  if (!roles.includes('SUPER_ADMIN')) {
+    return { error: 'Forbidden', status: 403 };
+  }
+  return null;
+}
+
 export async function createTeamMember(request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkSuperAdminPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const body = await request.json();
     // Normalize field aliases before validation
@@ -40,7 +51,7 @@ export async function createTeamMember(request) {
     return NextResponse.json(member, { status: 201 });
   } catch (error) {
     console.error('Team POST error:', error);
-    return NextResponse.json({ error: 'Failed to add team member' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to add team member', details: [error.message] }, { status: 500 });
   }
 }
 
@@ -60,12 +71,8 @@ export async function getTeamMemberById(request, { params }) {
 export async function updateTeamMember(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkSuperAdminPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const { id } = await params;
     const body = await request.json();
@@ -83,19 +90,15 @@ export async function updateTeamMember(request, { params }) {
     return NextResponse.json(member);
   } catch (error) {
     console.error('Team Member PUT error:', error);
-    return NextResponse.json({ error: 'Failed to update team member' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update team member', details: [error.message] }, { status: 500 });
   }
 }
 
 export async function deleteTeamMember(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const roles = session.user.roles || [];
-    if (!roles.includes('SUPER_ADMIN')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authError = checkSuperAdminPermission(session);
+    if (authError) return NextResponse.json({ error: authError.error }, { status: authError.status });
 
     const { id } = await params;
     await teamModel.deleteTeamMember(id);
@@ -103,6 +106,6 @@ export async function deleteTeamMember(request, { params }) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Team Member DELETE error:', error);
-    return NextResponse.json({ error: 'Failed to delete team member' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete team member', details: [error.message] }, { status: 500 });
   }
 }

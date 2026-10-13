@@ -39,7 +39,7 @@ export default function ResourcesAdmin() {
                 <td><span className="badge">{resource.type}</span></td>
                 <td><a href={resource.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)' }}>Link</a></td>
                 <td className={styles.actions}>
-                  <button className={styles.actionBtn} onClick={() => alert('Edit form here')}>Edit</button>
+                  <button className={styles.actionBtn} onClick={() => window.location.href = `/admin/resources/${resource.id}/edit`}>Edit</button>
                   <button className={styles.actionBtn} onClick={() => handleDelete(resource.id)}>Delete</button>
                 </td>
               </tr>

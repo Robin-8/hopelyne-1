@@ -9,6 +9,7 @@ export default function EditBlogPost() {
   const [formData, setFormData] = useState({ title: '', content: '', excerpt: '', tags: '', published: false });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetch(`/api/blog/${id}`).then(res => res.json()).then(data => {
@@ -16,8 +17,8 @@ export default function EditBlogPost() {
         title: data.title || '',
         content: data.content || '',
         excerpt: data.excerpt || '',
-        tags: data.tags ? data.tags.map(t => t.name).join(', ') : '',
-        published: data.published || false
+        tags: typeof data.tags === 'string' ? data.tags : Array.isArray(data.tags) ? data.tags.join(', ') : '',
+        published: data.status === 'PUBLISHED'
       });
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -26,19 +27,33 @@ export default function EditBlogPost() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError('');
     try {
+      const payload = {
+        title: formData.title.trim(),
+        content: formData.content.trim(),
+        excerpt: formData.excerpt.trim() || undefined,
+        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean).join(',') : undefined,
+        status: formData.published ? 'PUBLISHED' : 'DRAFT',
+      };
+
       const res = await fetch(`/api/blog/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
-        })
+        body: JSON.stringify(payload)
       });
-      if (res.ok) router.push('/admin/blog');
-      else alert('Failed to update post');
-    } catch (e) {
-      alert('Error updating post');
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        router.push('/admin/blog');
+      } else {
+        const msg = data.details?.join(', ') || data.error || 'Failed to update post';
+        setError(msg);
+        alert(msg);
+      }
+    } catch (err) {
+      const msg = err.message || 'Error updating post';
+      setError(msg);
+      alert(msg);
     } finally {
       setSaving(false);
     }
@@ -49,6 +64,19 @@ export default function EditBlogPost() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Edit Blog Post</h1>
+      {error && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#FEE2E2',
+          border: '1px solid #EF4444',
+          color: '#B91C1C',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          fontWeight: 500
+        }}>
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Title</label>
