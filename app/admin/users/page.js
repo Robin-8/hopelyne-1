@@ -54,7 +54,7 @@ export default function UsersAdmin() {
                 <td>{user.email}</td>
                 <td>
                   <div className={styles.roles}>
-                    {user.roles?.map(role => (
+                    {(Array.isArray(user.roles) ? user.roles : (user.roles || '').split(',').map(r => r.trim()).filter(Boolean)).map(role => (
                       <span key={role} className="badge badge-accent" style={{ fontSize: '0.7rem' }}>{role}</span>
                     ))}
                   </div>

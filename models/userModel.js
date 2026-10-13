@@ -6,7 +6,7 @@ export async function getAllUsers() {
       id: true,
       name: true,
       email: true,
-      image: true,
+      avatar: true,
       roles: true,
       createdAt: true,
     }
@@ -16,7 +16,7 @@ export async function getAllUsers() {
 export async function getUserById(id) {
   return await prisma.user.findUnique({
     where: { id },
-    select: { id: true, email: true, name: true, image: true, roles: true, createdAt: true }
+    select: { id: true, email: true, name: true, avatar: true, roles: true, createdAt: true }
   });
 }
 
